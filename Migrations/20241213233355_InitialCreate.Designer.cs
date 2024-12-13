@@ -11,9 +11,9 @@ using TodoRestApi.Data;
 
 namespace TodoRestApi.Migrations
 {
-    [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20241212171128_DeleteChanges")]
-    partial class DeleteChanges
+    [DbContext(typeof(TodoListDbContext))]
+    [Migration("20241213233355_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
