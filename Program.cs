@@ -7,7 +7,9 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllers();
-// builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
+builder.Configuration.AddUserSecrets<Program>();
 
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddDbContext<TodoListDbContext>(options => options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
@@ -16,10 +18,11 @@ builder.Services.AddCors(options => options.AddPolicy("AllowAll", p => p.AllowAn
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
-// if (app.Environment.IsDevelopment())
-// {
-//     app.MapOpenApi();
-// }
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
 
 app.UseCors("AllowAll");
 
@@ -39,7 +42,10 @@ db.Database.Migrate();
 // GET ALL TODO ITEM IN THE TODO LIST
 app.MapGet("api/todolist", async (TodoListDbContext db) =>
     await db.TodoItems.Select(todo => new TodoItemReadDto(todo.Id, todo.Todo, todo.IsCompleted, todo.CreatedAt, todo.UpdatedAt)).ToListAsync()
-);
+).WithName("GetAllTodoItems")
+.WithTags("TodoList")
+.Produces<List<TodoItemReadDto>>(StatusCodes.Status200OK)
+.WithDescription("Retrieves all Todo items.");
 #endregion
 
 
@@ -55,7 +61,10 @@ app.MapPost("/api/add/todoitem", async (TodoListDbContext db, TodoItemCreateDto 
     await db.SaveChangesAsync();
     var todoDto = new TodoItemReadDto(todo.Id, todo.Todo, todo.IsCompleted, todo.CreatedAt, todo.UpdatedAt);
     return Results.Created($"api/add/todoitem/{todo.Id}", todoDto);
-});
+}).WithName("AddTodoItem")
+.WithTags("TodoList")
+.Produces<TodoItemReadDto>(StatusCodes.Status201Created)
+.WithDescription("Adds a new Todo item.");
 #endregion
 
 
@@ -73,7 +82,11 @@ app.MapPut("/api/update/todoitem/{id}", async (TodoListDbContext db, int id, Tod
     await db.SaveChangesAsync();
 
     return Results.NoContent();
-});
+}).WithName("UpdateTodoItem")
+.WithTags("TodoList")
+.Produces(StatusCodes.Status204NoContent)
+.Produces(StatusCodes.Status404NotFound)
+.WithDescription("Updates an existing Todo item by ID.");
 #endregion
 
 
@@ -92,7 +105,11 @@ app.MapDelete("/api/delete/completed", async (TodoListDbContext db) =>
     await db.SaveChangesAsync();
 
     return Results.Ok("All completed items have been deleted.");
-});
+}).WithName("DeleteCompletedItems")
+.WithTags("TodoList")
+.Produces(StatusCodes.Status200OK)
+.Produces(StatusCodes.Status404NotFound)
+.WithDescription("Deletes all completed Todo items.");
 #endregion
 
 
