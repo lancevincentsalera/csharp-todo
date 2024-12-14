@@ -13,7 +13,6 @@ builder.Configuration.AddUserSecrets<Program>();
 
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddDbContext<TodoListDbContext>(options => options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
-builder.Services.AddCors(options => options.AddPolicy("AllowAll", p => p.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader()));
 
 var app = builder.Build();
 
@@ -24,16 +23,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseCors("AllowAll");
-
 app.UseHttpsRedirection();
-app.UseAuthorization();
-app.MapControllers();
-
-using var scope = app.Services.CreateScope();
-var db = scope.ServiceProvider.GetRequiredService<TodoListDbContext>();
-db.Database.Migrate();
-
 
 /* Minimal APIs */
 /******************/
